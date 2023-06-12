@@ -24,13 +24,13 @@
 
 ## Description
 
-install node
-set .env in src with
-set .env in postgres
-run the db
-npm install
-nest --watch
-
+```install node
+#set .env in src with
+#set .env in postgres
+#run the db
+#npm install
+#nest --watch
+```
 
 
 ## Test
