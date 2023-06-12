@@ -26,8 +26,18 @@
 
 ```install node
 #set .env in src
-
+      DB_HOST
+      DB_PORT
+      DB_USERNMAE
+      DB_PASSWORD
+      DB_DATABASE
 #set .env in postgres
+      POSTGRESQL_PASS
+      DB_NAME
+      PMA_HOST
+      PMA_PORT
+      PGADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD
 
 #run the db
 
