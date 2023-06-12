@@ -1,12 +1,35 @@
-import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import typeOrmConfigs from './database/configs/db_configs';
+import { UserModule } from './components/user/user.module';
+import { GameModule } from './components/game/game.module';
+import { ChatModule } from './components/chat/chat.module';
+import { NotificationModule } from './components/notification/notification.module';
+import { GroupInvitesModule } from './components/group_invites/group_invites.module';
+import { FriendsModule } from './components/friends/friends.module';
+import { ChannelModule } from './components/channels/channel.module';
+import { AddUserMiddleware } from './global/middlewares/add-default-user.middleware';
+
+const ENV_PATH : string = './src/.env'; 
 
 @Module({
-  imports: [ UserModule],
-  // controllers: [],
-  // providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ENV_PATH }),
+    TypeOrmModule.forRootAsync(typeOrmConfigs()),
+    UserModule,
+    ChannelModule,
+    GameModule,
+    ChatModule,
+    NotificationModule,
+    GroupInvitesModule,
+    FriendsModule,
+  ],
+  controllers: [],
+  providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AddUserMiddleware).forRoutes('*');
+  }
+}
