@@ -25,12 +25,17 @@
 ## Description
 
 ```install node
-#set .env in src with
+#set .env in src
+
 #set .env in postgres
+
 #run the db
+
 #npm install
+
 #nest --watch
 ```
+
 
 
 ## Test
