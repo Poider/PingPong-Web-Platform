@@ -1,29 +1,37 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod, forwardRef } from '@nestjs/common';
 import { ChannelService } from './channel.service';
 import { ChannelController } from './channel.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Channel, ChannelUsers, User } from 'src/database/entities';
+import { Channel, ChannelBlacklist, ChannelInvites, ChannelMessages, ChannelUsers, User, UsersMuted } from 'src/database/entities';
 import ChannelRepository from '../repositories/channel.repository';
 import { UserModule } from '../user/user.module';
-import { APP_PIPE } from '@nestjs/core';
 import { ValidationPasswordPipe } from './pipe/validation-password.pipe';
 import { PasswordService } from './password.service';
-import { ChannelUsersRepository } from '../repositories';
+import { ChannelUsersRepository, UserRepository } from '../repositories';
 import { ChannelExistsGuard } from './guards/channel-exists.guard';
 import { ChannelRolesGuard } from './guards/channel-roles.guard';
-import { UserInChannelGuard } from './guards/user-in-channel.guard';
 import { UserNotInChannelGuard } from './guards/user-not-in-channel.guard';
-import { ChannelUsersService } from './channel-users.service';
 import { ValidationPasswordMiddleware } from './middlewares/validation-password.middleware';
+import ChannelBlacklistRepository from '../repositories/channel-blacklist.repository';
+import { TargetedUserInChannelGuard } from './guards/targeted-user-in-channel.guard';
+import UsersMutedRepository from '../repositories/users-muted.repository';
+import { UserInChannelGuard } from './guards/user-in-channel.guard';
+import { PrivateChannelGuard } from './guards/private-channel.guard';
+import ChannelMessagesRepository from '../repositories/channel-messages.repository';
+import { BlacklistedGuard } from './guards/blacklisted.guard';
+import { GroupGuard } from './guards/group.guard';
+import { ChannelGateway } from './channel.gateway';
+import { SocketModule } from '../socket/socket.module';
+import { UserMutedGuard } from './guards';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Channel, User, ChannelUsers]),
-    UserModule
+    TypeOrmModule.forFeature([Channel, User, ChannelUsers, ChannelBlacklist, UsersMuted, ChannelMessages, ChannelInvites]),
+    SocketModule,
+    forwardRef(() => UserModule),
   ],
   providers: [
     ChannelService,
-    ChannelUsersService,
     PasswordService,
     {
       provide: 'MyChannelRepository',
@@ -33,14 +41,36 @@ import { ValidationPasswordMiddleware } from './middlewares/validation-password.
       provide: 'MyChannelUsersRepository',
       useClass: ChannelUsersRepository
     },
+    {
+      provide: 'MyChannelBlacklistRepository',
+      useClass: ChannelBlacklistRepository
+    },
+    {
+      provide: 'MyUsersMutedRepository',
+      useClass: UsersMutedRepository
+    },
+    {
+      provide: 'MyUserRepository',
+      useClass: UserRepository
+    },
+    {
+      provide: 'MyChannelMessagesRepository',
+      useClass: ChannelMessagesRepository
+    },
     ValidationPasswordPipe, 
     /********************** GUARD *************/
     ChannelExistsGuard,
     ChannelRolesGuard,
+    GroupGuard,
     UserInChannelGuard,
-    UserNotInChannelGuard
+    TargetedUserInChannelGuard,
+    UserNotInChannelGuard,
+    PrivateChannelGuard,
+    BlacklistedGuard,
+    ChannelGateway
   ],
-  controllers: [ChannelController]
+  controllers: [ChannelController],
+  exports : [ChannelService, ChannelExistsGuard, UserInChannelGuard]
 })
 export class ChannelModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

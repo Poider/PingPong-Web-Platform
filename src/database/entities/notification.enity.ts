@@ -14,8 +14,17 @@ class Notification {
     @Column()
     public message : string;
 
-    @Column()
-    public link : string;
+    @Column({nullable : true})
+    public acceptLink : string;
+
+    @Column({default : "PUT"})
+    public acceptMethod : string;
+
+    @Column({nullable : true})
+    public refuseLink : string;
+
+    @Column({default : "DELETE"})
+    public refuseMethod : string;
 
     @Column()
     public time : Date;
@@ -24,11 +33,11 @@ class Notification {
     @Column()
     public seen : boolean;
 
-    @ManyToOne(() => User, (user) => user.notifications, {onDelete: 'CASCADE'})
+    @ManyToOne(() => User, (user) => user.notifications)
     public receiver : User;
 
 
-    @ManyToOne(() => User, (user) => user.sentNotifications, {onDelete: 'CASCADE'})
+    @ManyToOne(() => User, (user) => user.sentNotifications)
     public sender : User;
 }
 

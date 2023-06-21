@@ -2,20 +2,20 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import {User} from './index';
 
 @Entity()
-class MatchHistory{
+class Game{
     @PrimaryGeneratedColumn("uuid")
     public token: string;
 
-    @ManyToOne(() => User, (user) => user.matchHistoryPlayer1, {onDelete: 'CASCADE'})
+    @ManyToOne(() => User, (user) => user.gamePlayer1)
     public player1: User;
 
-    @ManyToOne(() => User, (user) => user.matchHistoryPlayer2, {onDelete: 'CASCADE'})
+    @ManyToOne(() => User, (user) => user.gamePlayer2, {nullable: true })
     public player2: User;
 
-    @Column()
+    @Column({nullable : true})
     public player1_score: number;
 
-    @Column()
+    @Column({nullable : true})
     public player2_score: number;
 
     //if null then game is live
@@ -26,4 +26,4 @@ class MatchHistory{
     public type: boolean;
 }
 
-export default MatchHistory
+export default Game

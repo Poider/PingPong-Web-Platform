@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
-import { Friends } from "src/database/entities";
+import { Friends, User } from "src/database/entities";
 import ABaseRepository from "./repositories_interfaces/base/base.repository.abstract";
 import { IFriendsRepository } from "./repositories_interfaces";
 import { friendRequestStatus } from "src/global/types";
@@ -18,35 +18,56 @@ class FriendsRepository extends ABaseRepository<Friends> implements IFriendsRepo
     super();
   }
 
-async getFriendsOfId(userId : number) : Promise <Friends[]>
+  async getFriendsOfId(user: User): Promise<User[]> {
+    const friends = await this.entity
+      .createQueryBuilder('friend')
+      .where('(friend.senderId = :userId OR friend.receiverId = :userId)', { userId: user.id })
+      .andWhere('friend.status = :status', { status: friendRequestStatus.accepted })
+      .leftJoinAndSelect('friend.sender', 'sender')
+      .leftJoinAndSelect('friend.receiver', 'receiver')
+      .getMany();
+  
+    const users: User[] = friends.map((friend) => {
+      if (friend.sender.id === user.id)
+        return friend.receiver;
+      return friend.sender;
+    });
+  
+    return users;
+  }
+  
+
+async getFriendRequestOfId(user : User) : Promise <Friends[]>
 {
     return await(
-        this.findByCondition({
-            where : [
-                {
-                    sender : userId,
-                    status : friendRequestStatus.accepted,
-                },
-                {
-                    receiver : userId,
-                    status : friendRequestStatus.accepted,
-                }
-            ]
+        this.findByOptions({
+            where : {
+                receiver : user,
+                status : friendRequestStatus.pending,
+            }, 
+            relations : ['sender']
         })
     );
 }
 
 
-async getFriendRequestOfId(userId : number) : Promise <Friends[]>
-{
-    return await(
-        this.findByCondition({
-            where : {
-                receiver : userId,
-                status : friendRequestStatus.pending,
-            }
-        })
-    );
+
+async deleteFriend(user: User, friend: User) : Promise<number>{
+  const deleteResult =  await this.entity.createQueryBuilder()
+    .delete()
+    .from(Friends) // Target the table associated with the Friends entity
+    .where('status = :status')
+    .andWhere(
+      '(senderId = :senderId AND receiverId = :receiverId) OR (senderId = :receiverId AND receiverId = :senderId)',
+      {
+        status: friendRequestStatus.accepted,
+        senderId: user.id,
+        receiverId: friend.id,
+      }
+    )
+    .execute();
+
+    return deleteResult.affected ;
 }
 
 

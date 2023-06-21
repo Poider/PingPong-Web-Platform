@@ -1,21 +1,21 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, OneToMany, PrimaryColumn, Index } from 'typeorm';
 
 import {User, Channel} from './index';
-import { ChannelUserRole } from 'src/components/channels/types/channel-user-roles';
+import { ChannelUserRole } from 'src/global/types/channel-user-roles';
 
 
 
 @Entity()
+@Index(['user', 'channel'], {unique : true})
+
 class ChannelUsers{
     @PrimaryGeneratedColumn()
     public id?: number;
 
-    // @Index(['user', 'channel'], { unique: true })
-    
-    @ManyToOne(() => User, user => user.channelUsers, {onDelete: 'CASCADE'})
+    @ManyToOne(() => User, user => user.channelUsers)
     public user: User;
 
-    @ManyToOne(() => Channel, channel => channel.channelUsers, {onDelete: 'CASCADE'})
+    @ManyToOne(() => Channel, channel => channel.channelUsers)
     public channel: Channel;
 
     @Column()

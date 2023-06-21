@@ -1,9 +1,9 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable, OneToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from 'typeorm';
 
 import {User, ChannelMessages, ChannelUsers} from './index';
 import UsersMuted from './users_muted.entity';
-import Invites from './invites.entity';
-import { ChannelsVisibility } from 'src/components/channels/types/channel-visibility.type';
+import Invites from './channel-invites.entity';
+import { ChannelsVisibility } from 'src/global/types/channel-visibility.type';
 import { Exclude } from 'class-transformer';
 
 
@@ -42,7 +42,7 @@ class Channel{
     public usersMuted: UsersMuted[];
 
 
-    @ManyToMany(() => User, user => user.forbiddenChannels, {nullable : true})
+    @ManyToMany(() => User, user => user.forbiddenChannels, {nullable : true })
     @JoinTable()
     blacklistedUsers: User[];
 
@@ -52,12 +52,13 @@ class Channel{
     public invitedUsers: User[];
 
 
-    @OneToMany(() => Invites, (invites) => invites.group_id, {nullable : true, cascade: true, onDelete: 'CASCADE' })
+    @OneToMany(() => Invites, (invites) => invites.group, {nullable : true, cascade: true, onDelete: 'CASCADE' })
     public group_invites: Invites[];
 
     //update on each message sent
-    @OneToOne(() => ChannelMessages, channelMessage => channelMessage.id, { nullable: true, cascade: true, onDelete: 'CASCADE'  })
-    lastMessage : ChannelMessages;
+    @OneToOne(() => ChannelMessages,  {nullable : true, cascade: true, onDelete: 'SET NULL' })
+    @JoinColumn()
+    lastMessage: ChannelMessages
 
     // toJSON () {
     //     delete this.password;

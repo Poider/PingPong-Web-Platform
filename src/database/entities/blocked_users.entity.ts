@@ -3,13 +3,14 @@ import { User } from './index';
 
 @Entity()
 class BlockedUsers {
+
     @PrimaryGeneratedColumn()
     public id: number;
 
-    @ManyToOne(() =>User, user => user.blocked, {onDelete: 'CASCADE'})
+    @ManyToOne(() =>User, user => user.blocked)
     public blocked: User;
 
-    @ManyToOne(() =>User, user => user.blockedBy, {onDelete: 'CASCADE'})
+    @ManyToOne(() =>User, user => user.blockedBy)
     public blockedBy: User;
     
 }

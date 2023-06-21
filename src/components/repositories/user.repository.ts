@@ -1,5 +1,5 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "src/database/entities";
+import { Channel, ChannelUsers, User } from "src/database/entities";
 import { IUserRepository } from "src/components/repositories/repositories_interfaces";
 import { Repository } from "typeorm";
 import ABaseRepository from "src/components/repositories/repositories_interfaces/base/base.repository.abstract";
@@ -13,6 +13,21 @@ class UserRepository extends ABaseRepository<User> implements IUserRepository
     protected entity: Repository<User>,
   ) {
     super();
+  }
+
+  async fetchTwoUsers(user1Id: number, user2Id: number) {
+      const users = await this.entity.createQueryBuilder('Game')
+        .where('user.id IN (:ids)', { ids: [user1Id, user2Id] })
+        .getMany();
+    
+      const [user1, user2] = users;
+    
+      if (!user1 || !user2) {
+        throw new Error('Invalid sender or receiver ID');
+      }
+      return ({
+          user1,user2
+      })
   }
 }
 
